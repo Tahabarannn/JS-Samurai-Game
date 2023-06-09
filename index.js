@@ -9,16 +9,33 @@ c.fillRect(0, 0, canvas.width, canvas.height);
 const gravity = 0.7;
 
 class Sprite {
-  constructor({ position, velocity }) {
+  constructor({ position, velocity, color = "red" }) {
     this.position = position;
     this.velocity = velocity;
+    this.width = 50;
     this.height = 150;
     this.lastKey;
+    this.attackBox = {
+      position: this.position,
+      width: 100,
+      height: 50,
+    };
+    this.color = color;
+    this.isAttacking;
   }
 
   draw() {
-    c.fillStyle = "red";
-    c.fillRect(this.position.x, this.position.y, 50, this.height);
+    c.fillStyle = this.color;
+    c.fillRect(this.position.x, this.position.y, this.width, this.height);
+
+    //Attack Box
+    c.fillStyle = "blue";
+    c.fillRect(
+      this.attackBox.position.x,
+      this.attackBox.position.y,
+      this.attackBox.width,
+      this.attackBox.height
+    );
   }
 
   update() {
@@ -32,6 +49,13 @@ class Sprite {
     } else {
       this.velocity.y += gravity;
     }
+  }
+
+  attack() {
+    this.isAttacking = true;
+    setTimeout(() => {
+      this.isAttacking = false;
+    }, 100);
   }
 }
 
@@ -55,6 +79,7 @@ const enemy = new Sprite({
     x: 0,
     y: 0,
   },
+  color: "blue",
 });
 
 const keys = {
@@ -95,11 +120,23 @@ function animate() {
   } else if (keys.ArrowRight.pressed && enemy.lastKey === "ArrowRight") {
     enemy.velocity.x = 5;
   }
+
+  //Detecting Collision
+  if (
+    player.attackBox.position.x + player.attackBox.width >= enemy.position.x &&
+    player.attackBox.position.x <= enemy.position.x + this.width &&
+    player.attackBox.position.y + player.attackBox.height >= enemy.position.y &&
+    player.attackBox.position.y <= enemy.position.y + enemy.height &&
+    player.isAttacking
+  ) {
+    console.log("collision");
+  }
 }
 
 animate();
 
 window.addEventListener("keydown", (event) => {
+  console.log(event.key);
   switch (event.key) {
     case "d":
       keys.d.pressed = true;
@@ -111,6 +148,9 @@ window.addEventListener("keydown", (event) => {
       break;
     case "w":
       player.velocity.y = -20;
+      break;
+    case " ":
+      player.attack();
       break;
 
     case "ArrowRight":
